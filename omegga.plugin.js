@@ -349,13 +349,6 @@ module.exports = class AutosaveEz {
   }
 
   async init() {
-    // debug chat command
-    Omegga.on('chatcmd:save', async () => {
-      Omegga.broadcast('"Saving"');
-      await this.save();
-      Omegga.broadcast('"Saved"');
-    });
-
     // command handling
     Omegga.on('cmd:asez', this.handleCommand.bind(this));
     Omegga.on('chatcmd:asez', this.handleCommand.bind(this));
