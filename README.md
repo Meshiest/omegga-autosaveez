@@ -20,7 +20,6 @@ An autosaver plugin for [omegga](https://github.com/brickadia-community/omegga).
 * `enabled` - Autosave is enabled
 * `authorized` - Comma separated list of authorized usernames who can use asez commands
 * `host-only` - Whether asez commands are host only
-* `authorized` - A comma separated list of usernames that are allowed to generate sudokus
 * `folder` - Current folder to place autosaves in + read autosaves from. Leave blank for default `Builds` foler
 * `num-saves` - Number of saves to keep (0 means all). Enabling this **will delete oldest autosaves** not marked with `_keep`
 * `save-interval` - Minutes between each autosave (minimum 1)
