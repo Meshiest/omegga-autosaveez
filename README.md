@@ -1,8 +1,6 @@
 # easy autosave plugin
 
-A playable sudoku generator plugin for [omegga](https://github.com/brickadia-community/omegga).
-
-To play, duplicate the numbers on the right to the board. Feel free to remove the numbers when you've used 9 or recolor them.
+An autosaver plugin for [omegga](https://github.com/brickadia-community/omegga).
 
 ## Install
 
