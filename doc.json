@@ -44,7 +44,7 @@
       "default": true
     },
     "filename-format": {
-      "description": "Save file name format (requires $ID and $DATE)",
+      "description": "Save file name format (requires $DATE)",
       "type": "string",
       "default": "autosave_$DATE"
     },

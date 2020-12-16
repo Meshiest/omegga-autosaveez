@@ -25,5 +25,5 @@ An autosaver plugin for [omegga](https://github.com/brickadia-community/omegga).
 * `save-interval` - Minutes between each autosave (minimum 1)
 * `check-brick-count` - Check brick count to determine if a save should be made
 * `load-on-start` - Load latest autosave when server starts
-* `filename-format` - Save file name format (requires $ID and $DATE)
+* `filename-format` - Save file name format (requires $DATE)
 * `broadcast` - Announce to the server that an autosave was created
