@@ -225,7 +225,9 @@ module.exports = class AutosaveEz {
           resolve(v);
         };
       });
-      Omegga.saveBricks(TEMP_SAVE_FILENAME);
+      Omegga.saveBricks(Omegga.version === 'a4'
+        ? TEMP_SAVE_FILENAME.replace(/\.brs$/, '')
+        : TEMP_SAVE_FILENAME);
       return await promise;
     } catch (err) {
       console.error('typical', err);
@@ -236,7 +238,10 @@ module.exports = class AutosaveEz {
   async load(save) {
     console.log('Copying', save.name, 'to temp file');
     await cp(save.filename, this.tempLoadFilePath);
-    Omegga.loadBricks(this.tempLoadFilePath.replace(Omegga.savePath, ''));
+    const file = this.tempLoadFilePath.replace(Omegga.savePath + '/', '');
+    Omegga.loadBricks(Omegga.version === 'a4'
+    ? file.replace(/\.brs$/, '')
+    : file);
   }
 
   // announce a message to the server!.... if it's configured to
