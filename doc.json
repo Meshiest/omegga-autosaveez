@@ -1,0 +1,101 @@
+{
+  "name": "autosave_ez",
+  "description": "A very basic autosave",
+  "author": "cake",
+  "config": {
+    "enabled": {
+      "description": "Autosave is enabled",
+      "type": "boolean",
+      "default": true
+    },
+    "host-only": {
+      "description": "Whether asez commands are host only",
+      "type": "boolean",
+      "default": true
+    },
+    "authorized": {
+      "description": "Comma separated list of authorized usernames who can use asez commands",
+      "type": "string",
+      "default": ""
+    },
+    "folder": {
+      "description": "Current folder to place autosaves in + read autosaves from. Leave blank for Builds",
+      "type": "string",
+      "default": "autosaves"
+    },
+    "num-saves": {
+      "description": "Number of saves to keep (0 means all). Will delete oldest autosaves not marked with '_keep'",
+      "type": "number",
+      "default": 0
+    },
+    "save-interval": {
+      "description": "Minutes between each autosave (minimum 1)",
+      "type": "number",
+      "default": 30
+    },
+    "check-brick-count": {
+      "description": "Check brick count to determine if a save should be made",
+      "type": "boolean",
+      "default": true
+    },
+    "load-on-start": {
+      "description": "Load latest autosave when server starts",
+      "type": "boolean",
+      "default": true
+    },
+    "filename-format": {
+      "description": "Save file name format (requires $ID and $DATE)",
+      "type": "string",
+      "default": "autosave_$DATE"
+    },
+    "broadcast": {
+      "description": "Announce to the server that an autosave was created",
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "commands": [
+    {
+      "name": "!asez list",
+      "description": "List available autosaves",
+      "example": "!asez list 2",
+      "args": [{
+        "name": "page",
+        "description": "Autosave list page",
+        "required": false
+      }]
+    },
+    {
+      "name": "!asez scan",
+      "description": "Re-scan autosave directory",
+      "example": "!asez scan",
+      "args": []
+    },
+    {
+      "name": "!asez keep",
+      "description": "Toggle an autosave as one to keep",
+      "example": "!asez keep 5",
+      "args": [{
+        "name": "id",
+        "description": "Autosave id to keep",
+        "required": true
+      }]
+    },
+    {
+      "name": "!asez save",
+      "description": "Force an autosave",
+      "example": "!asez save",
+      "args": []
+    },
+    {
+      "name": "!asez load",
+      "description": "Load an autosave",
+      "example": "!asez load 5",
+      "args": [{
+        "name": "id",
+        "description": "Autosave id to load",
+        "required": true
+      }]
+    }
+  ]
+}
