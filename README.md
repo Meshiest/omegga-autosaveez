@@ -2,6 +2,10 @@
 
 An autosaver plugin for [omegga](https://github.com/brickadia-community/omegga).
 
+## Screenshot
+
+![Screenshot of the asez list command](https://i.imgur.com/IsWjkLQ.png)
+
 ## Install
 
 * `git clone https://github.com/meshiest/omegga-autosaveez autosaveez` in `plugins` directory
