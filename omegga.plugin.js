@@ -419,7 +419,7 @@ module.exports = class AutosaveEz {
         }
 
         this.announce(
-          `"Auto-saved ${yellow(status.bricks)} brick${status.bricks!== 1?'s':''} in ${yellow(saveSpeed + 's')}.${
+          `"Auto-saved ${yellow(status.bricks.toLocaleString())} brick${status.bricks!== 1?'s':''} in ${yellow(saveSpeed + 's')}.${
             culled > 0 ? ` Removed ${yellow(culled)} old save${culled!== 1?'s':''}.` : ''}"`);
       }
     });
