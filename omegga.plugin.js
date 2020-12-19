@@ -425,7 +425,5 @@ module.exports = class AutosaveEz {
     });
   }
 
-  async stop() {
-    console.log('autosave stop');
-  }
+  async stop() {}
 };
