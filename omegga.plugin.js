@@ -65,6 +65,7 @@ module.exports = class AutosaveEz {
 
 
     this.lastBricks = -1;
+    this.lastComponents = -1;
     this.countChanged = true;
 
     // set default save name format
@@ -373,8 +374,9 @@ module.exports = class AutosaveEz {
     Omegga.on('metrics:heartbeat', async status => {
       // detect if the number of bricks has changed since last status update
       // mediocre benchmark when people are changing lights, though you can circumvent this by placing a single brick
-      if (this.lastBricks !== status.bricks) {
+      if (this.lastBricks !== status.bricks || this.lastComponents !== status.components) {
         this.countChanged = true;
+        this.lastComponents = status.components;
         this.lastBricks = status.bricks;
       }
 
