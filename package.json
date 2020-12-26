@@ -1,6 +1,6 @@
 {
   "name": "autosave_ez",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "an omegga autosaver",
   "main": "omegga.plugin.js",
   "scripts": {

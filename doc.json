@@ -96,6 +96,16 @@
         "description": "Autosave id to load",
         "required": true
       }]
+    },
+    {
+      "name": "!asez count",
+      "description": "Count bricks in the latest autosave, if a player is specified, find bricks by that player",
+      "example": "!asez count Zeblote",
+      "args": [{
+        "name": "name",
+        "description": "Player name to match",
+        "required": false
+      }]
     }
   ]
 }

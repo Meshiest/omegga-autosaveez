@@ -2,7 +2,9 @@ const path = require('path');
 const chokidar = require('chokidar');
 
 const { mkdir, mv, rm, cp, ago, exists } = require('./util.js');
-const {chat:{ sanitize }} = OMEGGA_UTIL;
+const {chat: {sanitize}, pattern: {explode}} = OMEGGA_UTIL;
+
+const pkg = require('./package.json');
 
 // filename that
 const TEMP_SAVE_FILENAME = 'autosave_ez_temp.brs';
@@ -97,10 +99,7 @@ module.exports = class AutosaveEz {
 
   // message a person or everyone if it's a4
   toOne(name, ...messages) {
-    if (this.omegga.version === 'a4')
-      Omegga.broadcast(...messages);
-    else
-      Omegga.whisper(name, ...messages);
+    Omegga.whisper(name, ...messages);
   }
 
   // extract data from save name
@@ -226,9 +225,7 @@ module.exports = class AutosaveEz {
           resolve(v);
         };
       });
-      Omegga.saveBricks(Omegga.version === 'a4'
-        ? TEMP_SAVE_FILENAME.replace(/\.brs$/, '')
-        : TEMP_SAVE_FILENAME);
+      Omegga.saveBricks(TEMP_SAVE_FILENAME);
       return await promise;
     } catch (err) {
       console.error('typical', err);
@@ -240,9 +237,7 @@ module.exports = class AutosaveEz {
     console.log('Copying', save.name, 'to temp file');
     await cp(save.filename, this.tempLoadFilePath);
     const file = this.tempLoadFilePath.replace(Omegga.savePath + '/', '');
-    Omegga.loadBricks(Omegga.version === 'a4'
-    ? file.replace(/\.brs$/, '')
-    : file);
+    Omegga.loadBricks(file);
   }
 
   // announce a message to the server!.... if it's configured to
@@ -258,12 +253,18 @@ module.exports = class AutosaveEz {
       `(${ago(age)})` : '');
   }
 
-  async handleCommand(name, command, arg) {
+  async handleCommand(name, command, arg, ...rest) {
     // authorization (host enabled or users in authorized list)
     if (
       this.config['host-only'] && !Omegga.getPlayer(name).isHost() &&
       !this.config['authorized'].split(',').includes(name)
     ) return;
+
+    if (!command) {
+      Omegga.whisper(name, `"${yellow('autosave_ez')} version ${yellow(pkg.version)}"`);
+      Omegga.whisper(name, '"<b>Usage</>: <code>/asez &lt;command&gt;</>"');
+      Omegga.whisper(name, '"<b>Commands</>: <code>save, list, scan, keep, count</>"');
+    }
 
 
     // save command
@@ -307,13 +308,13 @@ module.exports = class AutosaveEz {
 
       // check save index
       if (!save) {
-        Omegga.broadcast(`"Invalid id. Run ${yellow('!asez list')} for a list of save ids."`);
+        Omegga.broadcast(`"Invalid id. Run ${yellow('/asez list')} for a list of save ids."`);
         return;
       }
 
       // check save file existence
       if (!exists(save.filename)) {
-        Omegga.broadcast(`"Save file does not exist. Run ${yellow('!asez scan')} to update saves."`);
+        Omegga.broadcast(`"Save file does not exist. Run ${yellow('/asez scan')} to update saves."`);
         return;
       }
 
@@ -336,16 +337,57 @@ module.exports = class AutosaveEz {
         console.error('Error making file keep', save.filename, err);
         this.toOne(name, `"${red('Error setting ' + yellow(save.name) + ' to keep')}"`);
       }
+
+    // load a save
     } else if (command === 'load') {
       const id = arg && arg.match(/^\d+$/) ? parseInt(arg) : -1;
       const save = this.saves.find(s => s.id === id);
 
       if (!save) {
-        this.toOne(name, `"Invalid id. Run ${yellow('!asez list')} for a list of save ids."`);
+        this.toOne(name, `"Invalid id. Run ${yellow('/asez list')} for a list of save ids."`);
         return;
       }
 
       this.load(save);
+
+    // count bricks by a user
+    } else if (command === 'count') {
+      const target = (arg || '').toLowerCase();
+
+      if (this.saves.length === 0) {
+        this.toOne(name, `"No autosaves yet. Run ${yellow('/asez save')} to create one."`);
+        return;
+      }
+
+      const save = this.saves[this.saves.length - 1];
+
+      // save relative path
+      const relPath = save.filename.replace(Omegga.savePath + '/', '');
+
+      try {
+        const data = Omegga.readSaveData(relPath, true);
+
+        // if no target is provided or the autosave does not have header info for brick counts
+        if (!target || data.version < 8) {
+          this.toOne(name, `"Latest autosave contains ${yellow(data.brick_count.toLocaleString())} bricks from ` +
+            `${yellow(data.brick_owners.length.toLocaleString())} owners."`);
+        } else {
+          const exploded = explode(target);
+
+          const found = data.brick_owners.find(p => p.name === target) // find by exact match
+            || data.brick_owners.find(p => p.name.indexOf(target) > -1) // find by rough match
+            || data.brick_owners.find(p => p.name.match(exploded)); // find by exploded regex match (ck finds cake, tbp finds TheBlackParrot)
+
+          if (!found) {
+            this.toOne(name, '"Could not find any player by that name."');
+          } else {
+            this.toOne(name, `"Player <link=\\"https://brickadia.com/users/${found.id}\\">${found.name}</>placed ${yellow(found.bricks.toLocaleString())} bricks in the last autosave."`);
+          }
+        }
+
+      } catch (e) {
+        console.error('Error reading save', relPath, e);
+      }
     }
   }
 
@@ -425,6 +467,8 @@ module.exports = class AutosaveEz {
             culled > 0 ? ` Removed ${yellow(culled)} old save${culled!== 1?'s':''}.` : ''}"`);
       }
     });
+
+    return {registeredCommands: ['asez']};
   }
 
   async stop() {}
