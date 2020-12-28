@@ -373,10 +373,12 @@ module.exports = class AutosaveEz {
             `${yellow(data.brick_owners.length.toLocaleString())} owners."`);
         } else {
           const exploded = explode(target);
+          // lowercase all owners
+          for (const p of data.brick_owners) p.nameLower = p.name.toLowerCase();
 
-          const found = data.brick_owners.find(p => p.name === target) // find by exact match
-            || data.brick_owners.find(p => p.name.indexOf(target) > -1) // find by rough match
-            || data.brick_owners.find(p => p.name.match(exploded)); // find by exploded regex match (ck finds cake, tbp finds TheBlackParrot)
+          const found = data.brick_owners.find(p => p.nameLower === target) // find by exact match
+            || data.brick_owners.find(p => p.nameLower.indexOf(target) > -1) // find by rough match
+            || data.brick_owners.find(p => p.nameLower.match(exploded)); // find by exploded regex match (ck finds cake, tbp finds TheBlackParrot)
 
           if (!found) {
             this.toOne(name, '"Could not find any player by that name."');
