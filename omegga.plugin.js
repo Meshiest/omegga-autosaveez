@@ -443,6 +443,10 @@ module.exports = class AutosaveEz {
 
       // we should autosave when the server is old enough and the last save is old enough
       if (isSaveOldEnough && isServerOldEnough && isBricksOk) {
+        if (this.config['announce-save']) {
+          Omegga.broadcast(`"Saving ${yellow(status.bricks.toLocaleString())} brick${status.bricks!== 1?'s':''}..."`);
+        }
+
         const benchStart = Date.now();
         const ok = await this.save();
         if (!ok) {

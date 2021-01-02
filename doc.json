@@ -52,6 +52,11 @@
       "description": "Announce to the server that an autosave was created",
       "type": "boolean",
       "default": true
+    },
+    "announce-save": {
+      "description": "Announce to the server that an autosave is about to start",
+      "type": "boolean",
+      "default": false
     }
   },
   "commands": [
