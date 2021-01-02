@@ -31,3 +31,4 @@ An autosaver plugin for [omegga](https://github.com/brickadia-community/omegga).
 * `load-on-start` - Load latest autosave when server starts
 * `filename-format` - Save file name format (requires $DATE)
 * `broadcast` - Announce to the server that an autosave was created
+* `announce-save` - Announce to the server that an autosave will be created
