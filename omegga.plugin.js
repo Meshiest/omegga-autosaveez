@@ -445,6 +445,7 @@ module.exports = class AutosaveEz {
       if (isSaveOldEnough && isServerOldEnough && isBricksOk) {
         if (this.config['announce-save']) {
           Omegga.broadcast(`"Saving ${yellow(status.bricks.toLocaleString())} brick${status.bricks!== 1?'s':''}..."`);
+          await new Promise(resolve => setTimeout(resolve, 250));
         }
 
         const benchStart = Date.now();
