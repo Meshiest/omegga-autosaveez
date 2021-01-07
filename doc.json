@@ -8,15 +8,15 @@
       "type": "boolean",
       "default": true
     },
-    "host-only": {
-      "description": "Whether asez commands are host only",
+     "only-authorized": {
+      "description": "Whether only authorized players can use asez commands",
       "type": "boolean",
       "default": true
     },
-    "authorized": {
-      "description": "Comma separated list of authorized usernames who can use asez commands",
-      "type": "string",
-      "default": ""
+    "authorized-users": {
+      "description": "List of players who can always asez commands",
+      "type": "players",
+      "default": []
     },
     "folder": {
       "description": "Current folder to place autosaves in + read autosaves from. Leave blank for Builds",

@@ -253,11 +253,12 @@ module.exports = class AutosaveEz {
       `(${ago(age)})` : '');
   }
 
-  async handleCommand(name, command, arg, ...rest) {
+  async handleCommand(name, command, arg) {
     // authorization (host enabled or users in authorized list)
+    const player = Omegga.getPlayer(name);
     if (
-      this.config['host-only'] && !Omegga.getPlayer(name).isHost() &&
-      !this.config['authorized'].split(',').includes(name)
+      this.config['only-authorized'] && !player.isHost() &&
+      !this.config['authorized-users'].some(p => player.id === p.id)
     ) return;
 
     if (!command) {
