@@ -8,6 +8,10 @@ An autosaver plugin for [omegga](https://github.com/brickadia-community/omegga).
 
 ## Install
 
+Easy: `omegga install gh:Meshiest/autosaveez`
+
+Manual:
+
 * `git clone https://github.com/meshiest/omegga-autosaveez autosaveez` in `plugins` directory
 * `npm i` in `autosaveez` directory
 
