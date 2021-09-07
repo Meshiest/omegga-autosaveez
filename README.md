@@ -51,3 +51,4 @@ Events your plugin will receive after running `connect`:
 
 - `save` - sends `path/to/save.brs` - run when asez moves the save file
 - `connected` - sends a number indicating plugin version
+- `disconnected` - run when this plugin stops and other plugins may need to reconnect
