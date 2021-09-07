@@ -2,7 +2,10 @@ const path = require('path');
 const chokidar = require('chokidar');
 
 const { mkdir, mv, rm, cp, ago, exists } = require('./util.js');
-const {chat: {sanitize}, pattern: {explode}} = OMEGGA_UTIL;
+const {
+  chat: { sanitize },
+  pattern: { explode }
+} = OMEGGA_UTIL;
 
 const pkg = require('./package.json');
 
@@ -12,10 +15,12 @@ const TEMP_LOAD_FILENAME = 'autosave_ez_temp_load.brs';
 const PAGE_SIZE = 5;
 
 // regex that parses save dates out of save names
-const SAVE_REGEX = '(?<year>\\d{4})(?<month>\\d{2})(?<day>\\d{2})(?<hour>\\d{2})(?<min>\\d{2})(?<sec>\\d{2})';
+const SAVE_REGEX =
+  '(?<year>\\d{4})(?<month>\\d{2})(?<day>\\d{2})(?<hour>\\d{2})(?<min>\\d{2})(?<sec>\\d{2})';
 const KEEP_REGEX = '.*?(?<keep>_keep)?';
 
-const colorKey = (color, str) => `<color=\\"${color}\\">${sanitize(str + '')}</>`;
+const colorKey = (color, str) =>
+  `<color=\\"${color}\\">${sanitize(str + '')}</>`;
 const yellow = str => colorKey('ffff99', str);
 const red = str => colorKey('ff9999', str);
 const green = str => colorKey('99ff99', str);
@@ -26,6 +31,8 @@ module.exports = class AutosaveEz {
     this.config = config;
     this.store = store;
     this.ids = 0;
+
+    this.listeningPlugins = [];
 
     // miliseconds between autosaves
     this.saveInterval = Math.max(config['save-interval'], 1) * 60000;
@@ -38,10 +45,12 @@ module.exports = class AutosaveEz {
     this.tempLoadFilePath = path.join(omegga.savePath, TEMP_LOAD_FILENAME);
 
     // destination path
-    this.destFilePath = path.join(omegga.savePath, this.sanitizeFile(config['folder'] || ''));
+    this.destFilePath = path.join(
+      omegga.savePath,
+      this.sanitizeFile(config['folder'] || '')
+    );
 
-    if (Omegga.verbose)
-      console.log('Creating configured autosave directory');
+    if (Omegga.verbose) console.log('Creating configured autosave directory');
     // create folders up to destination path
     mkdir(this.destFilePath);
 
@@ -51,8 +60,7 @@ module.exports = class AutosaveEz {
     // move the autosave temp file when it is created
     this.watcher
       .on('add', file => {
-        if (Omegga.verbose)
-          console.log('Autosave temp created @', file);
+        if (Omegga.verbose) console.log('Autosave temp created @', file);
         this.moveAutoSave();
       })
       .on('unlink', () => {
@@ -65,7 +73,6 @@ module.exports = class AutosaveEz {
         this.moveAutoSave();
       });
 
-
     this.lastBricks = -1;
     this.lastComponents = -1;
     this.countChanged = true;
@@ -76,7 +83,13 @@ module.exports = class AutosaveEz {
       this.saveNameFormat = 'autosave_$DATE';
 
     // match the format
-    this.saveNameRegex = new RegExp('^' + this.saveNameFormat.replace(/\$DATE/, SAVE_REGEX) + KEEP_REGEX + '\\.brs$', 'i');
+    this.saveNameRegex = new RegExp(
+      '^' +
+        this.saveNameFormat.replace(/\$DATE/, SAVE_REGEX) +
+        KEEP_REGEX +
+        '\\.brs$',
+      'i'
+    );
     this.parseSaveName = this.parseSaveName.bind(this);
 
     this.saves = [];
@@ -84,9 +97,7 @@ module.exports = class AutosaveEz {
       this.saves = this.scanSaves();
       console.log('Found', this.saves.length, 'autosaves');
       const latestSave = this.getLatestSave();
-      if (latestSave)
-        console.log('Latest is from', latestSave.date.toString());
-
+      if (latestSave) console.log('Latest is from', latestSave.date.toString());
     } catch (err) {
       console.error('Error scanning saves', err);
     }
@@ -110,7 +121,7 @@ module.exports = class AutosaveEz {
     if (!match) return undefined;
 
     // yes, I know I could have just stored it in ISO format, this format is just so easy to sort
-    const {year, month, day, hour, min, sec} = match.groups;
+    const { year, month, day, hour, min, sec } = match.groups;
     const date = new Date(`${year}-${month}-${day}T${hour}:${min}:${sec}.000Z`);
 
     // determine if this save is a keep save
@@ -122,7 +133,7 @@ module.exports = class AutosaveEz {
       keep,
       filename,
       name: base,
-      id: ++this.ids,
+      id: ++this.ids
     };
   }
 
@@ -130,10 +141,13 @@ module.exports = class AutosaveEz {
   genSaveName(date, keep) {
     // create a YYYYmmddHHMMSS datestamp
     const timestamp = (date || new Date())
-      .toISOString().replace(/[:T-]/g, '').replace(/\..+/,'');
+      .toISOString()
+      .replace(/[:T-]/g, '')
+      .replace(/\..+/, '');
 
     // insert it into the format
-    const filename = this.saveNameFormat.replace(/\$DATE/g, timestamp) + (keep ? '_keep' : '');
+    const filename =
+      this.saveNameFormat.replace(/\$DATE/g, timestamp) + (keep ? '_keep' : '');
 
     return filename + '.brs';
   }
@@ -148,7 +162,9 @@ module.exports = class AutosaveEz {
     const filepath = path.join(this.destFilePath, filename);
 
     // move the save file
-    mv(this.tempFilePath, filepath);
+    mv(this.tempFilePath, filepath).then(() =>
+      this.emitAll('asez.save', filepath)
+    );
 
     // add the save to the saves object
     this.saves.push({
@@ -157,7 +173,7 @@ module.exports = class AutosaveEz {
       keep: false,
       filename: filepath,
       name: path.basename(filename),
-      id: ++this.ids,
+      id: ++this.ids
     });
   }
 
@@ -166,7 +182,8 @@ module.exports = class AutosaveEz {
     this.ids = 0;
 
     // get a list of saves in the autosave folder
-    return this.omegga.getSaves()
+    return this.omegga
+      .getSaves()
       .filter(s => s.startsWith(this.destFilePath + '/')) // only get ones in the correct folder
       .map(this.parseSaveName) // parse the saves by name
       .filter(s => s) // filter by successful parses
@@ -181,9 +198,14 @@ module.exports = class AutosaveEz {
     const numSaves = this.saves.filter(s => !s.keep).length;
 
     // iterate through saves (already in order of oldest to newst)
-    for (let i = 0; i < numSaves && numSaves - inferiorSavesList.length > this.numKeepSaves; i++) {
+    for (
+      let i = 0;
+      i < numSaves && numSaves - inferiorSavesList.length > this.numKeepSaves;
+      i++
+    ) {
       const save = this.saves[i];
-      if (!save.keep) // ignore a save that is marked as keep
+      if (!save.keep)
+        // ignore a save that is marked as keep
         inferiorSavesList.push(save);
     }
 
@@ -200,18 +222,19 @@ module.exports = class AutosaveEz {
         if (Omegga.verbose)
           console.log('Culling autosave', save.name, save.filename);
         rm(save.filename);
-        removed ++;
+        removed++;
       } catch (err) {
         console.error('Error culling autosave', save.filename);
       }
-
     }
     return removed;
   }
 
   // get the latest
   getLatestSave() {
-    return this.saves.length > 0 ? this.saves.reduce((a, b) => a.unix > b.unix ? a : b) : undefined;
+    return this.saves.length > 0
+      ? this.saves.reduce((a, b) => (a.unix > b.unix ? a : b))
+      : undefined;
   }
 
   // save bricks, resolve when file is moved
@@ -249,24 +272,33 @@ module.exports = class AutosaveEz {
   // format a date, show how long ago the date was if it's younger than a week
   formatDate(date) {
     const age = Date.now() - date.getTime();
-    return date.toString().replace(/GMT.+/, '') + (age < 7 * 24 * 60 * 60 * 1000 ?
-      `(${ago(age)})` : '');
+    return (
+      date.toString().replace(/GMT.+/, '') +
+      (age < 7 * 24 * 60 * 60 * 1000 ? `(${ago(age)})` : '')
+    );
   }
 
   async handleCommand(name, command, arg) {
     // authorization (host enabled or users in authorized list)
     const player = Omegga.getPlayer(name);
     if (
-      this.config['only-authorized'] && !player.isHost() &&
+      this.config['only-authorized'] &&
+      !player.isHost() &&
       !this.config['authorized-users'].some(p => player.id === p.id)
-    ) return;
+    )
+      return;
 
     if (!command) {
-      Omegga.whisper(name, `"${yellow('autosave_ez')} version ${yellow(pkg.version)}"`);
+      Omegga.whisper(
+        name,
+        `"${yellow('autosave_ez')} version ${yellow(pkg.version)}"`
+      );
       Omegga.whisper(name, '"<b>Usage</>: <code>/asez &lt;command&gt;</>"');
-      Omegga.whisper(name, '"<b>Commands</>: <code>save, list, scan, keep, count</>"');
+      Omegga.whisper(
+        name,
+        '"<b>Commands</>: <code>save, list, scan, keep, count</>"'
+      );
     }
-
 
     // save command
     if (command === 'save') {
@@ -274,12 +306,16 @@ module.exports = class AutosaveEz {
       await this.save();
       Omegga.broadcast('"Saved."');
 
-    // list available saves
+      // list available saves
     } else if (command === 'list') {
       // max page count
       const pages = Math.ceil(this.saves.length / PAGE_SIZE);
       // current page (parse argument as a number, default to 1, cap at page count)
-      const page = Math.max(Math.min(arg && arg.match(/^\d+$/) ? parseInt(arg) : 1, pages), 1) - 1;
+      const page =
+        Math.max(
+          Math.min(arg && arg.match(/^\d+$/) ? parseInt(arg) : 1, pages),
+          1
+        ) - 1;
       const offset = page * PAGE_SIZE;
 
       // save count is nonzero - print out a page from most recent saves first
@@ -287,35 +323,51 @@ module.exports = class AutosaveEz {
         // this code looks like garbages, iterate through the saves at an offset
         // also limit the output
         for (let i = 0; i < PAGE_SIZE && i + offset < this.saves.length; i++) {
-          const save = this.saves[(this.saves.length - 1) - (i + offset)];
+          const save = this.saves[this.saves.length - 1 - (i + offset)];
           // print out save id, date, and age
-          this.toOne(name, `"- ${yellow(save.id)} - ${this.formatDate(save.date)}${save.keep ? ' - ' + green('KEEP') : ''}"`);
+          this.toOne(
+            name,
+            `"- ${yellow(save.id)} - ${this.formatDate(save.date)}${
+              save.keep ? ' - ' + green('KEEP') : ''
+            }"`
+          );
         }
         // print out pagination info
-        this.toOne(name, `"Page ${yellow(page + 1)} of ${yellow(pages)}. (${yellow(this.saves.length)} total)"`);
+        this.toOne(
+          name,
+          `"Page ${yellow(page + 1)} of ${yellow(pages)}. (${yellow(
+            this.saves.length
+          )} total)"`
+        );
       } else {
         this.toOne(name, '"No saves yet"');
       }
 
-    // force re-scan saves
+      // force re-scan saves
     } else if (command === 'scan') {
       this.saves = this.scanSaves();
       this.toOne(name, `"Found ${yellow(this.saves.length)} saves."`);
 
-    // toggle save as keep
+      // toggle save as keep
     } else if (command === 'keep') {
       const id = arg && arg.match(/^\d+$/) ? parseInt(arg) : -1;
       const save = this.saves.find(s => s.id === id);
 
       // check save index
       if (!save) {
-        Omegga.broadcast(`"Invalid id. Run ${yellow('/asez list')} for a list of save ids."`);
+        Omegga.broadcast(
+          `"Invalid id. Run ${yellow('/asez list')} for a list of save ids."`
+        );
         return;
       }
 
       // check save file existence
       if (!exists(save.filename)) {
-        Omegga.broadcast(`"Save file does not exist. Run ${yellow('/asez scan')} to update saves."`);
+        Omegga.broadcast(
+          `"Save file does not exist. Run ${yellow(
+            '/asez scan'
+          )} to update saves."`
+        );
         return;
       }
 
@@ -333,30 +385,44 @@ module.exports = class AutosaveEz {
         save.keep = !save.keep;
         save.filename = newName;
         save.name = path.basename(newName);
-        this.toOne(name, `"${save.keep ? green('Enabled') : red('Disabled')} keep on ${yellow(save.name)}"`);
+        this.toOne(
+          name,
+          `"${save.keep ? green('Enabled') : red('Disabled')} keep on ${yellow(
+            save.name
+          )}"`
+        );
       } catch (err) {
         console.error('Error making file keep', save.filename, err);
-        this.toOne(name, `"${red('Error setting ' + yellow(save.name) + ' to keep')}"`);
+        this.toOne(
+          name,
+          `"${red('Error setting ' + yellow(save.name) + ' to keep')}"`
+        );
       }
 
-    // load a save
+      // load a save
     } else if (command === 'load') {
       const id = arg && arg.match(/^\d+$/) ? parseInt(arg) : -1;
       const save = this.saves.find(s => s.id === id);
 
       if (!save) {
-        this.toOne(name, `"Invalid id. Run ${yellow('/asez list')} for a list of save ids."`);
+        this.toOne(
+          name,
+          `"Invalid id. Run ${yellow('/asez list')} for a list of save ids."`
+        );
         return;
       }
 
       this.load(save);
 
-    // count bricks by a user
+      // count bricks by a user
     } else if (command === 'count') {
       const target = (arg || '').toLowerCase();
 
       if (this.saves.length === 0) {
-        this.toOne(name, `"No autosaves yet. Run ${yellow('/asez save')} to create one."`);
+        this.toOne(
+          name,
+          `"No autosaves yet. Run ${yellow('/asez save')} to create one."`
+        );
         return;
       }
 
@@ -370,24 +436,36 @@ module.exports = class AutosaveEz {
 
         // if no target is provided or the autosave does not have header info for brick counts
         if (!target || data.version < 8) {
-          this.toOne(name, `"Latest autosave contains ${yellow(data.brick_count.toLocaleString())} bricks from ` +
-            `${yellow(data.brick_owners.length.toLocaleString())} owners."`);
+          this.toOne(
+            name,
+            `"Latest autosave contains ${yellow(
+              data.brick_count.toLocaleString()
+            )} bricks from ` +
+              `${yellow(data.brick_owners.length.toLocaleString())} owners."`
+          );
         } else {
           const exploded = explode(target);
           // lowercase all owners
           for (const p of data.brick_owners) p.nameLower = p.name.toLowerCase();
 
-          const found = data.brick_owners.find(p => p.nameLower === target) // find by exact match
-            || data.brick_owners.find(p => p.nameLower.indexOf(target) > -1) // find by rough match
-            || data.brick_owners.find(p => p.nameLower.match(exploded)); // find by exploded regex match (ck finds cake, tbp finds TheBlackParrot)
+          const found =
+            data.brick_owners.find(p => p.nameLower === target) || // find by exact match
+            data.brick_owners.find(p => p.nameLower.indexOf(target) > -1) || // find by rough match
+            data.brick_owners.find(p => p.nameLower.match(exploded)); // find by exploded regex match (ck finds cake, tbp finds TheBlackParrot)
 
           if (!found) {
             this.toOne(name, '"Could not find any player by that name."');
           } else {
-            this.toOne(name, `"Player <link=\\"https://brickadia.com/users/${found.id}\\">${found.name}</>placed ${yellow(found.bricks.toLocaleString())} bricks in the last autosave."`);
+            this.toOne(
+              name,
+              `"Player <link=\\"https://brickadia.com/users/${found.id}\\">${
+                found.name
+              }</>placed ${yellow(
+                found.bricks.toLocaleString()
+              )} bricks in the last autosave."`
+            );
           }
         }
-
       } catch (e) {
         console.error('Error reading save', relPath, e);
       }
@@ -419,7 +497,10 @@ module.exports = class AutosaveEz {
     Omegga.on('metrics:heartbeat', async status => {
       // detect if the number of bricks has changed since last status update
       // mediocre benchmark when people are changing lights, though you can circumvent this by placing a single brick
-      if (this.lastBricks !== status.bricks || this.lastComponents !== status.components) {
+      if (
+        this.lastBricks !== status.bricks ||
+        this.lastComponents !== status.components
+      ) {
         this.countChanged = true;
         this.lastComponents = status.components;
         this.lastBricks = status.bricks;
@@ -434,7 +515,8 @@ module.exports = class AutosaveEz {
       const latestSave = this.getLatestSave();
 
       // most recent autosave is sufficiently old or there is no previous autosave
-      const isSaveOldEnough = !latestSave || latestSave.unix + this.saveInterval < Date.now();
+      const isSaveOldEnough =
+        !latestSave || latestSave.unix + this.saveInterval < Date.now();
 
       // server is older than the soonest autosave
       const isServerOldEnough = status.time > this.saveInterval;
@@ -445,7 +527,11 @@ module.exports = class AutosaveEz {
       // we should autosave when the server is old enough and the last save is old enough
       if (isSaveOldEnough && isServerOldEnough && isBricksOk) {
         if (this.config['announce-save']) {
-          Omegga.broadcast(`"Saving ${yellow(status.bricks.toLocaleString())} brick${status.bricks!== 1?'s':''}..."`);
+          Omegga.broadcast(
+            `"Saving ${yellow(status.bricks.toLocaleString())} brick${
+              status.bricks !== 1 ? 's' : ''
+            }..."`
+          );
           await new Promise(resolve => setTimeout(resolve, 250));
         }
 
@@ -462,7 +548,7 @@ module.exports = class AutosaveEz {
         this.countChanged = false;
 
         // benchmarked save speed
-        const saveSpeed = Math.floor((Date.now() - benchStart)/10)/100;
+        const saveSpeed = Math.floor((Date.now() - benchStart) / 10) / 100;
         let culled = 0;
         // announce benchmark and save
 
@@ -471,13 +557,63 @@ module.exports = class AutosaveEz {
         }
 
         this.announce(
-          `"Auto-saved ${yellow(status.bricks.toLocaleString())} brick${status.bricks!== 1?'s':''} in ${yellow(saveSpeed + 's')}.${
-            culled > 0 ? ` Removed ${yellow(culled)} old save${culled!== 1?'s':''}.` : ''}"`);
+          `"Auto-saved ${yellow(status.bricks.toLocaleString())} brick${
+            status.bricks !== 1 ? 's' : ''
+          } in ${yellow(saveSpeed + 's')}.${
+            culled > 0
+              ? ` Removed ${yellow(culled)} old save${culled !== 1 ? 's' : ''}.`
+              : ''
+          }"`
+        );
       }
     });
 
-    return {registeredCommands: ['asez']};
+    return { registeredCommands: ['asez'] };
   }
 
-  async stop() {}
+  async pluginEvent(event, from) {
+    const plugin = await Omegga.getPlugin(from);
+    switch (event) {
+    case 'asez.connect':
+      if (plugin) {
+        // if the plugin is already added, overwrite the reference
+        const index = this.listeningPlugins.findIndex(p => p.name === from);
+        if (index > -1) {
+          this.listeningPlugins[index] = plugin;
+        } else {
+          // otherwise, add it
+          this.listeningPlugins.push(plugin);
+        }
+        console.info('connected to plugin', from);
+        plugin.emit('asez.connected', 1);
+      }
+      break;
+
+    case 'asez.disconnect':
+      if (plugin) {
+        const index = this.listeningPlugins.findIndex(p => p.name === from);
+        // if the plugin exists, remove it from the list
+        if (index > -1) {
+          this.listeningPlugins[index] = this.listeningPlugins[
+            this.listeningPlugins.length - 1
+          ];
+          this.listeningPlugins.pop();
+          console.info('disconnected from plugin', from);
+        }
+      }
+      break;
+    }
+  }
+
+  emitAll(event, ...args) {
+    for (const plugin of this.listeningPlugins) {
+      plugin.emit(event, ...args);
+    }
+  }
+
+  async stop() {
+    // tell listening plugins they are no longer connected
+    this.emitAll('asez.disconnected');
+    this.listeningPlugins = [];
+  }
 };
