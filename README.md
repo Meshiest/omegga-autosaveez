@@ -41,13 +41,13 @@ Manual:
 
 Methods you can run to interact with this plugin:
 
-- `asez.connect` - request to be added to events
-  - responds with `asez.connected` w/ the plugin api version on success
-- `asez.disconnect` - request to be removed from events
+- `connect` - request to be added to events
+  - responds with `connected` w/ the plugin api version on success
+- `disconnect` - request to be removed from events
 
 ## Plugin Interop Events
 
-Events your plugin will receive after running `asez.connect`:
+Events your plugin will receive after running `connect`:
 
-- `asez.save` - sends `path/to/save.brs` - run when asez moves the save file
-- `asez.connected` - sends a number indicating plugin version
+- `save` - sends `path/to/save.brs` - run when asez moves the save file
+- `connected` - sends a number indicating plugin version

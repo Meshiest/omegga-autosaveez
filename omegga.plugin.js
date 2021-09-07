@@ -162,9 +162,7 @@ module.exports = class AutosaveEz {
     const filepath = path.join(this.destFilePath, filename);
 
     // move the save file
-    mv(this.tempFilePath, filepath).then(() =>
-      this.emitAll('asez.save', filepath)
-    );
+    mv(this.tempFilePath, filepath).then(() => this.emitAll('save', filepath));
 
     // add the save to the saves object
     this.saves.push({
@@ -574,7 +572,7 @@ module.exports = class AutosaveEz {
   async pluginEvent(event, from) {
     const plugin = await Omegga.getPlugin(from);
     switch (event) {
-    case 'asez.connect':
+    case 'connect':
       if (plugin) {
         // if the plugin is already added, overwrite the reference
         const index = this.listeningPlugins.findIndex(p => p.name === from);
@@ -585,11 +583,11 @@ module.exports = class AutosaveEz {
           this.listeningPlugins.push(plugin);
         }
         console.info('connected to plugin', from);
-        plugin.emit('asez.connected', 1);
+        plugin.emit('connected', 1);
       }
       break;
 
-    case 'asez.disconnect':
+    case 'disconnect':
       if (plugin) {
         const index = this.listeningPlugins.findIndex(p => p.name === from);
         // if the plugin exists, remove it from the list
@@ -613,7 +611,7 @@ module.exports = class AutosaveEz {
 
   async stop() {
     // tell listening plugins they are no longer connected
-    this.emitAll('asez.disconnected');
+    this.emitAll('disconnected');
     this.listeningPlugins = [];
   }
 };
