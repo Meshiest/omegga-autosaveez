@@ -8,7 +8,7 @@
       "type": "boolean",
       "default": true
     },
-     "only-authorized": {
+    "only-authorized": {
       "description": "Whether only authorized players can use asez commands",
       "type": "boolean",
       "default": true
@@ -57,6 +57,11 @@
       "description": "Announce to the server that an autosave is about to start",
       "type": "boolean",
       "default": false
+    },
+    "autokeep-interval": {
+      "description": "Minutes between keep saves to automatically enable keep on latest (0 means disabled)",
+      "type": "number",
+      "default": 0
     }
   },
   "commands": [
@@ -64,11 +69,13 @@
       "name": "!asez list",
       "description": "List available autosaves",
       "example": "!asez list 2",
-      "args": [{
-        "name": "page",
-        "description": "Autosave list page",
-        "required": false
-      }]
+      "args": [
+        {
+          "name": "page",
+          "description": "Autosave list page",
+          "required": false
+        }
+      ]
     },
     {
       "name": "!asez scan",
@@ -80,11 +87,13 @@
       "name": "!asez keep",
       "description": "Toggle an autosave as one to keep",
       "example": "!asez keep 5",
-      "args": [{
-        "name": "id",
-        "description": "Autosave id to keep",
-        "required": true
-      }]
+      "args": [
+        {
+          "name": "id",
+          "description": "Autosave id to keep",
+          "required": true
+        }
+      ]
     },
     {
       "name": "!asez save",
@@ -96,21 +105,25 @@
       "name": "!asez load",
       "description": "Load an autosave",
       "example": "!asez load 5",
-      "args": [{
-        "name": "id",
-        "description": "Autosave id to load",
-        "required": true
-      }]
+      "args": [
+        {
+          "name": "id",
+          "description": "Autosave id to load",
+          "required": true
+        }
+      ]
     },
     {
       "name": "!asez count",
       "description": "Count bricks in the latest autosave, if a player is specified, find bricks by that player",
       "example": "!asez count Zeblote",
-      "args": [{
-        "name": "name",
-        "description": "Player name to match",
-        "required": false
-      }]
+      "args": [
+        {
+          "name": "name",
+          "description": "Player name to match",
+          "required": false
+        }
+      ]
     }
   ]
 }

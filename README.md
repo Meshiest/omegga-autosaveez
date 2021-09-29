@@ -31,6 +31,7 @@ Manual:
 - `folder` - Current folder to place autosaves in + read autosaves from. Leave blank for default `Builds` foler
 - `num-saves` - Number of saves to keep (0 means all). Enabling this **will delete oldest autosaves** not marked with `_keep`
 - `save-interval` - Minutes between each autosave (minimum 1)
+- `autokeep-interval` - Minutes between keep saves to automatically enable keep on latest (0 means disabled). Intended to work with `num-saves` so infinite many keep saves will be stored but limited high frequency saves will not.
 - `check-brick-count` - Check brick count to determine if a save should be made
 - `load-on-start` - Load latest autosave when server starts
 - `filename-format` - Save file name format (requires \$DATE)

@@ -37,6 +37,9 @@ module.exports = class AutosaveEz {
     // miliseconds between autosaves
     this.saveInterval = Math.max(config['save-interval'], 1) * 60000;
 
+    // miliseconds between keep autosaves
+    this.autokeepInterval = Math.max(config['autokeep-interval'], 0) * 60000;
+
     // number of saves to keep before culling non-keep'd saves
     this.numKeepSaves = Math.max(config['num-saves'], 0);
 
@@ -156,7 +159,12 @@ module.exports = class AutosaveEz {
   moveAutoSave() {
     const date = new Date();
     const unix = date.getTime();
-    const filename = this.genSaveName(date);
+
+    // if autokeep is enabled, only keep if the most recent keep is less than the interval away
+    const isAutoKeep = this.autokeepInterval > 0 && !this.saves.some(s =>
+      s.keep && s.unix + this.autokeepInterval > unix);
+
+    const filename = this.genSaveName(date, isAutoKeep);
 
     // find the path at which it should reside
     const filepath = path.join(this.destFilePath, filename);
@@ -168,7 +176,7 @@ module.exports = class AutosaveEz {
     this.saves.push({
       date,
       unix,
-      keep: false,
+      keep: isAutoKeep,
       filename: filepath,
       name: path.basename(filename),
       id: ++this.ids
